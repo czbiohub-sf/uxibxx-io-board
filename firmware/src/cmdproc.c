@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "cmdproc.h"
@@ -11,7 +12,7 @@
 #define QUERY_OP_CH '?'
 #define IGNORE_CHARS "\n\t "
 
-#define INPUT_BUF_SIZE 32
+#define INPUT_BUF_SIZE 33
 #define ARG_BUF_SIZE 17
 
 
@@ -31,10 +32,11 @@ void cmdproc__processIncomingChar(uint8_t ch) {
 	if(!ch || strchr(IGNORE_CHARS, ch) || flags.commandReady)
 		return;
 	else if(ch == LINE_TERMINATOR) {
+		inputBuffer[inputNBytes] = 0;
 		flags.commandReady = 1;
 		}
-	else if(inputNBytes >= INPUT_BUF_SIZE) {
-		// TODO
+	else if(inputNBytes >= INPUT_BUF_SIZE - 1) {
+		// TODO maybe set an error flag or something?
 		}
 	else {
 		inputBuffer[inputNBytes++] = ch;
@@ -45,81 +47,95 @@ int cmdproc__hasCommandWaiting(void) {
 	return flags.commandReady;
 	}
 
+int parseArgVal(
+		cmdproc_argval_t *dest, const uint8_t *buf, cmdproc_cmdtype_t argType) {
+	int scanfResult;
+	unsigned int uintVal;
+	switch(argType) {
+		case ARGTYPE_UINT8:
+		case ARGTYPE_UINT16:
+			scanfResult = sscanf(buf, "%u", &uintVal);
+			if(scanfResult != 1)
+				return -1; // TODO maybe have distinct error values for different problems			
+		}
+	switch(argType) {
+		case ARGTYPE_UINT8:
+			if(uintVal > 255)
+				return -1;
+			dest->uint8Val = (uint8_t) uintVal;
+			return 0;
+		case ARGTYPE_UINT16:
+			dest->uint16Val = (uint16_t) uintVal;
+			return 0;
+		}
+	return -1;
+	}
+
 int cmdproc__getCommand(cmdproc_command_t *dest) {
-	int i;
-	int hasLeftArgs = 0;
-	int setOp = 0;
-	int queryOp = 0;
 	int error = 0;
-	uint8_t argBuf[ARG_BUF_SIZE];
-	int argLen;
-	int argIdx;
-	int argChIdx;
-	for(i = 0; i < inputNBytes; ++i) {
-		uint8_t ch = inputBuffer[i];
-		if(ch == LEFTARGS_START_CH) {
-			hasLeftArgs = 1;
-			break;
-			}
-		else if(ch == SET_OP_CH) {
-			setOp = 1;
-			break;
-			}
-		else if(ch == QUERY_OP_CH) {
-			queryOp = 1;
-			break;
-			}
-		else if(i >= CMDPROC_MNEM_MAX_LEN) {
-			error = 1;
-			break;
-			}
-		dest->mnem[i] = ch;
-		}
-	dest->mnem[i] = 0;
-	argIdx = 0;
-	while(!error && hasLeftArgs) {
-		if(argIdx >= CMDPROC_MAX_N_LEFTARGS) {
-			error = 1;
-			break;
-			}
-		hasLeftArgs = 0;
-		argChIdx = 0;
-		for(; i < inputNBytes; ++i) {
-			uint8_t ch = inputBuffer[i];
-			if(ch == ARG_DELIMITER) {
-				argIdx++; //FIXME TODO
-				argChIdx = 0;
-				hasLeftArgs = 1;
-				break;
-				}
-			else if(ch == SET_OP_CH) {
-				setOp = 1;
-				break;
-				}
-			else if(ch == QUERY_OP_CH) {
-				queryOp = 1;
-				break;
-				}
-			else if(argIdx >= ARG_BUF_SIZE - 1) {
-				error = 1;
-				break;
-				}
-			argBuf[argChIdx++] = ch;
-			}
-		argBuf[argChIdx] = 0;
-		dest->leftArgs[argIdx].uintVal = atoi(argBuf);
-		}
-	if(setOp) {
-		dest->cmdType = CMDTYPE_SET;
-		}
-	else if(queryOp) {
+	uint8_t leftBuf[INPUT_BUF_SIZE] = {0};
+	uint8_t rightBuf[INPUT_BUF_SIZE] = {0};
+	uint8_t argBuf[CMDPROC_ARG_MAX_LEN + 1] = {0};
+	char *leftEnd;
+	char *mnemEnd;
+	char *argEnd;
+	char *leftArgStart;
+	char *nextLeftArgStart;
+	int leftArgIdx = 0;
+	if((leftEnd = strchr(inputBuffer, QUERY_OP_CH))) {
 		dest->cmdType = CMDTYPE_QUERY;
+		}
+	else if((leftEnd = strchr(inputBuffer, SET_OP_CH))) {
+		dest->cmdType = CMDTYPE_SET;
 		}
 	else {
 		dest->cmdType = CMDTYPE_DO;
+		leftEnd = &inputBuffer[inputNBytes];
 		}
+	*leftEnd = 0;
+	strcpy(leftBuf, inputBuffer);
+	if(leftEnd < &inputBuffer[inputNBytes]) {
+		strcpy(rightBuf, leftEnd + 1);
+		}
+	// TODO: process the mnem earlier, look up the command spec, parse args according to specified type
+	if((mnemEnd = strchr(leftBuf, LEFTARGS_START_CH))) {
+		leftArgStart = mnemEnd + 1;
+		while(*leftArgStart) {
+			if(leftArgIdx >= CMDPROC_MAX_N_LEFTARGS) {
+				error |= 8;
+				break;
+				}
+			if((argEnd = strchr(leftArgStart, ARG_DELIMITER))) {
+				*argEnd = 0;
+				nextLeftArgStart = argEnd + 1;
+				}
+			else {
+				nextLeftArgStart = NULL;
+				}
+			if(strlen(leftArgStart) > CMDPROC_ARG_MAX_LEN)
+				error |= 4;
+			strncpy(argBuf, leftArgStart, CMDPROC_ARG_MAX_LEN);
+			error |= 2 * !!parseArgVal(
+				&dest->leftArgs[leftArgIdx], argBuf, ARGTYPE_UINT16); // TODO actually use command specs
+			leftArgIdx++;
+			leftArgStart = nextLeftArgStart;
+			}
+		}
+	else {
+		mnemEnd = &leftBuf[strlen(leftBuf)];
+		}
+	*mnemEnd = 0;
+	if(strlen(leftBuf) > CMDPROC_MNEM_MAX_LEN)
+		error |= 16;
+	strncpy(dest->mnem, leftBuf, CMDPROC_MNEM_MAX_LEN);
+
+	//temp TODO
+	if(strlen(rightBuf)) {
+		error |= 32 * !!parseArgVal(&dest->rightArgs[0], rightBuf, ARGTYPE_UINT16);
+		}
+
 	dest->parseError = error;
 	inputNBytes = 0;
 	flags.commandReady = 0;
-	return 0; // TODO return nonzero if there's an issue
+	return error;
 	}

@@ -1,4 +1,7 @@
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/power.h>
@@ -6,14 +9,14 @@
 #include <util/delay.h>
 
 #include "cmdproc.h"
+#include "gpio.h"
+#include "mstick.h"
+#include "statusleds.h"
+#include "usbcdc.h"
 
 
 void hwInit(void) {
 	clock_prescale_set(clock_div_1);
-	}
-
-void mstick__tick(uint16_t *tickCounter) {
-	statusleds__onMsTick(tickCounter);
 	}
 
 void triggerWatchdogReset(void) {
@@ -26,11 +29,97 @@ void triggerWatchdogReset(void) {
 	while(1) {}
 	}
 
-void main(void) {
+void handleCommand(void) {
 	cmdproc_command_t command;
+	char msgOutBuf[32];
+	int cmdResult;
+	int abort = 0;
 
+	if(cmdproc__hasCommandWaiting()) {
+		statusleds__winkUsbLed();
+		cmdproc__getCommand(&command);
+		if(command.parseError)
+			usbcdc__sendString("ERROR:FMT\r\n");
+		if(!strcmp(command.mnem, "DFU")) {
+			usbcdc__sendString("OK\r\n");
+			triggerWatchdogReset();
+			}
+		else if(command.cmdType == CMDTYPE_QUERY) {
+			if(!strcmp(command.mnem, "OUT")) {
+				cmdResult = gpio__getOutput(command.leftArgs[0].uint8Val);
+				}
+			else if(!strcmp(command.mnem, "INP")) {
+				cmdResult = gpio__getInput(command.leftArgs[0].uint8Val);
+				}
+			else if(!strcmp(command.mnem, "DIR")) {
+				cmdResult = gpio__getDirection(command.leftArgs[0].uint8Val);
+				}
+			else {
+				usbcdc__sendString("ERROR:CMD\r\n");
+				abort = 1;
+				}
+			if(!abort) {
+				if(cmdResult < 0) {
+					usbcdc__sendString("ERROR:VAL\r\n");
+					}
+				else {
+					snprintf(
+						msgOutBuf,
+						sizeof(msgOutBuf),
+						"%s:%d=%d\r\n",
+						command.mnem,
+						command.leftArgs[0].uint8Val,
+						cmdResult
+						);
+					usbcdc__sendString(msgOutBuf);
+					}
+				}
+			}
+		else if(command.cmdType == CMDTYPE_SET) {
+			if(!strcmp(command.mnem, "OUT")) {
+				cmdResult = gpio__setOutput(
+					command.leftArgs[0].uint8Val,
+					command.rightArgs[0].uint8Val
+					);
+				}
+			else if(!strcmp(command.mnem, "DIR")) {
+				cmdResult = gpio__setDirection(
+					command.leftArgs[0].uint8Val,
+					command.rightArgs[0].uint8Val
+					);
+				}
+			else {
+				usbcdc__sendString("ERROR:CMD\r\n");
+				abort = 1;
+				}
+			if(!abort) {
+				if(cmdResult) {
+					usbcdc__sendString("ERROR:VAL\r\n");
+					}
+				else {
+					usbcdc__sendString("OK\r\n");
+					}
+				}
+			}
+		else {
+			usbcdc__sendString("ERROR:CMD\r\n");
+			}
+		}
+	while(usbcdc__hasInputWaiting()) {
+		int16_t ch = usbcdc__getNextInputChar();
+		if(ch >= 0)
+			cmdproc__processIncomingChar((uint8_t)ch);
+		}
+	}
+
+void mstick__tick(uint16_t *tickCounter) {
+	statusleds__onMsTick(tickCounter);
+	}
+
+int main(void) {
 	hwInit();
 	statusleds__init();
+	gpio__init();
 	cmdproc__init();
 	mstick__init();
 	usbcdc__init();
@@ -39,31 +128,6 @@ void main(void) {
 	while(1) {
 		usbcdc__task();
 		statusleds__task();
-
-		if(cmdproc__hasCommandWaiting()) {
-			statusleds__winkUsbLed();
-			cmdproc__getCommand(&command);
-			if(!strcmp(command.mnem, "DFU"))
-				triggerWatchdogReset();
-
-			usbcdc__sendStringNoFlush("command is ");
-			usbcdc__sendStringNoFlush(command.mnem);
-			usbcdc__sendStringNoFlush(" and first larg is ");
-			char asdf[64];
-			itoa(command.leftArgs[0].uintVal, asdf, 10);
-			usbcdc__sendStringNoFlush(asdf);
-			usbcdc__sendStringNoFlush(" and cmdtype is ");
-			itoa(command.cmdType, asdf, 10);
-			usbcdc__sendStringNoFlush(asdf);
-			usbcdc__sendStringNoFlush(" and parseError is ");
-			itoa(command.parseError, asdf, 10);
-			usbcdc__sendStringNoFlush(asdf);
-			usbcdc__sendString("\r\n");
-			}
-		while(usbcdc__hasInputWaiting()) {
-			int16_t ch = usbcdc__getNextInputChar();
-			if(ch >= 0)
-				cmdproc__processIncomingChar((uint8_t)ch);
-			}
-		};
+		handleCommand();
+		}
 	}
