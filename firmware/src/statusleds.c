@@ -62,6 +62,7 @@ void statusleds__init(void) {
 	volFlags.hbt = 0;
 	flags.usbLedSetting = 0;
 	flags.hbtAck = 0;
+	flags.startWink = 0;
 	}
 
 void statusleds__setHbtLed(int on) {

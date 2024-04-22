@@ -34,10 +34,27 @@ void usbcdc__init(void) {
 void usbcdc__task(void) {
 	USB_USBTask();
 	CDC_Device_USBTask(&cdcInterface);
-	int16_t rxResult = CDC_Device_ReceiveByte(&cdcInterface);
-	if(rxResult >= 0) {
-		statusleds__winkUsbLed();
-		}
+	}
+
+void usbcdc__detach(void) {
+	USB_Detach();
+	}
+
+int usbcdc__hasInputWaiting(void) {
+	return !!CDC_Device_BytesReceived(&cdcInterface);
+	}
+
+int16_t usbcdc__getNextInputChar(void) {
+	return CDC_Device_ReceiveByte(&cdcInterface);
+	}
+
+void usbcdc__sendString(const char *str) {
+	usbcdc__sendStringNoFlush(str);
+	CDC_Device_Flush(&cdcInterface);
+	}
+
+void usbcdc__sendStringNoFlush(const char *str) {
+	CDC_Device_SendString(&cdcInterface, str);
 	}
 
 void EVENT_USB_Device_ControlRequest(void) {
