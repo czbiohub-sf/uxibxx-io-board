@@ -31,12 +31,12 @@ static const gpio_terminal_def_t gpioTerminalDefs[] = {
 	{13, &DDRB, &PINB, &PORTB, PB5, DIR_IN, 0},
 	{14, &DDRB, &PINB, &PORTB, PB6, DIR_IN, 0},
 	};
-static const int nTerminals =
+const int gpio__nTerminals =
 	sizeof(gpioTerminalDefs) / sizeof(gpio_terminal_def_t);
 
 
 const gpio_terminal_def_t *getTerminal(int terminalNo) {
-	for(int i = 0; i < nTerminals; ++i) {
+	for(int i = 0; i < gpio__nTerminals; ++i) {
 		if(gpioTerminalDefs[i].terminalNo == terminalNo)
 			return &gpioTerminalDefs[i];
 		}
@@ -53,7 +53,7 @@ inline void setIoRegBit(volatile uint8_t *reg, int bitNo, int on) {
 	}
 
 void gpio__init(void) {
-	for(int i = 0; i < nTerminals; ++i) {
+	for(int i = 0; i < gpio__nTerminals; ++i) {
 		const gpio_terminal_def_t *term = &gpioTerminalDefs[i];
 		if(term->dirReg)
 			setIoRegBit(
@@ -83,6 +83,26 @@ int gpio__getInput(int terminalNo) {
 	if(!terminal->inputReg)
 		return -1;
 	return getInput(terminal);
+	}
+
+int gpio__supportsOutput(int terminalNo) {
+	const gpio_terminal_def_t *terminal = getTerminal(terminalNo);
+	if(!terminal)
+		return -1;
+	return !!terminal->outputReg;
+	}
+
+int gpio__supportsInput(int terminalNo) {
+	const gpio_terminal_def_t *terminal = getTerminal(terminalNo);
+	if(!terminal)
+		return -1;
+	return !!terminal->inputReg;
+	}
+
+int gpio__getTerminalNo(int terminalIdx) {
+	if(terminalIdx >= gpio__nTerminals)
+		return -1;
+	return gpioTerminalDefs[terminalIdx].terminalNo;
 	}
 
 int gpio__getOutput(int terminalNo) {
