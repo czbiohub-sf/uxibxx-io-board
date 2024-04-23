@@ -1,0 +1,7 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "molex_1726480102")(type "KiCad")(uri "${KIPRJMOD}/sym/molex_1726480102.kicad_sym")(options "")(descr ""))
+  (lib (name "molex_0705510001")(type "KiCad")(uri "${KIPRJMOD}/sym/molex_0705510001.kicad_sym")(options "")(descr ""))
+  (lib (name "symbols")(type "KiCad")(uri "${KIPRJMOD}/sym/symbols.kicad_sym")(options "")(descr ""))
+  (lib (name "wago_2601-1102")(type "KiCad")(uri "${KIPRJMOD}/sym/wago_2601-1102.kicad_sym")(options "")(descr ""))
+)
