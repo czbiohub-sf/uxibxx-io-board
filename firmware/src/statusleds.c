@@ -38,7 +38,7 @@ inline void setHbtLed(int on) {
 		}
 	}
 
-inline void toggleHbtLed() {
+inline void toggleHbtLed(void) {
 	LED_HBT_PORT ^= LED_HBT_BM;
 	}
 
@@ -78,7 +78,7 @@ void statusleds__winkUsbLed(void) {
 	flags.startWink = 1;
 	}
 
-void statusleds__onMsTick(uint16_t *msCounter) {
+void statusleds__onMsTick(volatile uint16_t *msCounter) {
 	currentTick = *msCounter;
 	if(flags.hbtAck) {
 		volFlags.hbt = 0;

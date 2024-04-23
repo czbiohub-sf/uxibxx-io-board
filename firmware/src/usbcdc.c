@@ -1,6 +1,8 @@
 #include <LUFA/Drivers/USB/USB.h>
 
+#include "statusleds.h"
 #include "usbcdc_config.h"
+#include "usbcdc.h"
 
 
 USB_ClassInfo_CDC_Device_t cdcInterface = {

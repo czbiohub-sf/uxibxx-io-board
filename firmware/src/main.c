@@ -112,7 +112,7 @@ void handleCommand(void) {
 		}
 	}
 
-void mstick__tick(uint16_t *tickCounter) {
+void mstick__tick(volatile uint16_t *tickCounter) {
 	statusleds__onMsTick(tickCounter);
 	}
 

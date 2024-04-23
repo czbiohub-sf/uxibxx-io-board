@@ -72,7 +72,7 @@ inline int getOutput(const gpio_terminal_def_t *terminal) {
 	return !!(*terminal->outputReg & _BV(terminal->ioBit));
 	}
 
-inline int getInput(gpio_terminal_def_t *terminal) {
+inline int getInput(const gpio_terminal_def_t *terminal) {
 	return !!(*terminal->inputReg & _BV(terminal->ioBit));
 	}
 

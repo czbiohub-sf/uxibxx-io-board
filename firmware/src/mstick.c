@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <avr/interrupt.h>
 
+#include "mstick.h"
+
 
 volatile uint16_t tickCounter;
 

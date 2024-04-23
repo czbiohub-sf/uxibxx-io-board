@@ -48,15 +48,17 @@ int cmdproc__hasCommandWaiting(void) {
 	}
 
 int parseArgVal(
-		cmdproc_argval_t *dest, const uint8_t *buf, cmdproc_cmdtype_t argType) {
+		cmdproc_argval_t *dest, const char *buf, cmdproc_argtype_t argType) {
 	int scanfResult;
 	unsigned int uintVal;
 	switch(argType) {
 		case ARGTYPE_UINT8:
 		case ARGTYPE_UINT16:
-			scanfResult = sscanf(buf, "%u", &uintVal);
+			scanfResult = sscanf((char *)buf, "%u", &uintVal);
 			if(scanfResult != 1)
-				return -1; // TODO maybe have distinct error values for different problems			
+				return -1; // TODO maybe have distinct error values for different problems	
+		default:
+			return -1;		
 		}
 	switch(argType) {
 		case ARGTYPE_UINT8:
@@ -67,34 +69,36 @@ int parseArgVal(
 		case ARGTYPE_UINT16:
 			dest->uint16Val = (uint16_t) uintVal;
 			return 0;
+		default:
+			break;
 		}
 	return -1;
 	}
 
 int cmdproc__getCommand(cmdproc_command_t *dest) {
 	int error = 0;
-	uint8_t leftBuf[INPUT_BUF_SIZE] = {0};
-	uint8_t rightBuf[INPUT_BUF_SIZE] = {0};
-	uint8_t argBuf[CMDPROC_ARG_MAX_LEN + 1] = {0};
+	char leftBuf[INPUT_BUF_SIZE] = {0};
+	char rightBuf[INPUT_BUF_SIZE] = {0};
+	char argBuf[CMDPROC_ARG_MAX_LEN + 1] = {0};
 	char *leftEnd;
 	char *mnemEnd;
 	char *argEnd;
 	char *leftArgStart;
 	char *nextLeftArgStart;
 	int leftArgIdx = 0;
-	if((leftEnd = strchr(inputBuffer, QUERY_OP_CH))) {
+	if((leftEnd = strchr((char *)inputBuffer, QUERY_OP_CH))) {
 		dest->cmdType = CMDTYPE_QUERY;
 		}
-	else if((leftEnd = strchr(inputBuffer, SET_OP_CH))) {
+	else if((leftEnd = strchr((char *)inputBuffer, SET_OP_CH))) {
 		dest->cmdType = CMDTYPE_SET;
 		}
 	else {
 		dest->cmdType = CMDTYPE_DO;
-		leftEnd = &inputBuffer[inputNBytes];
+		leftEnd = (char *)&inputBuffer[inputNBytes];
 		}
 	*leftEnd = 0;
-	strcpy(leftBuf, inputBuffer);
-	if(leftEnd < &inputBuffer[inputNBytes]) {
+	strcpy(leftBuf, (char *)inputBuffer);
+	if(leftEnd < (char *)&inputBuffer[inputNBytes]) {
 		strcpy(rightBuf, leftEnd + 1);
 		}
 	// TODO: process the mnem earlier, look up the command spec, parse args according to specified type

@@ -3,23 +3,21 @@
 
 #include "usbcdc_config.h"
 
+
 #define STRINGID_LANG 0
 #define STRINGID_MFR 1
 #define STRINGID_PROD 2
 #define STRINGID_SERIAL 3
 
-#define CONTROL_EP_SIZE 8
-
-
 
 const USB_Descriptor_String_t PROGMEM langString = 
 	USB_STRING_DESCRIPTOR_ARRAY(LANGUAGE_ID_ENG);
 const USB_Descriptor_String_t PROGMEM mfrString =
-	USB_STRING_DESCRIPTOR(L"CZBSF BioE");
+	USB_STRING_DESCRIPTOR(MFR_STRING);
 const USB_Descriptor_String_t PROGMEM prodString =
-	USB_STRING_DESCRIPTOR(L"Relay dealy");
+	USB_STRING_DESCRIPTOR(PROD_STRING);
 USB_Descriptor_String_t serialNo =
-	USB_STRING_DESCRIPTOR(L"One two three");
+	USB_STRING_DESCRIPTOR(L"One two three"); //TODO
 
 const USB_Descriptor_Device_t PROGMEM deviceDescriptor = {
 	.Header = {
@@ -31,9 +29,9 @@ const USB_Descriptor_Device_t PROGMEM deviceDescriptor = {
 	.SubClass = CDC_CSCP_NoSpecificSubclass,
 	.Protocol = CDC_CSCP_NoSpecificProtocol,
 	.Endpoint0Size = ENDPOINT_CONTROLEP_DEFAULT_SIZE,
-	.VendorID = 0x4242, //TODO
-	.ProductID = 0x4242, //TODO
-	.ReleaseNumber = VERSION_BCD(0,0,1),
+	.VendorID = VENDOR_ID,
+	.ProductID = PRODUCT_ID,
+	.ReleaseNumber = RELEASENUMBER,
 	.ManufacturerStrIndex = STRINGID_MFR,
 	.ProductStrIndex = STRINGID_PROD,
 	.SerialNumStrIndex = STRINGID_SERIAL,
@@ -136,7 +134,6 @@ const struct config_descriptor PROGMEM configDescriptor = {
 		.EndpointSize = DOUT_EP_SIZE,
 		.Attributes = 
 			EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA,
-		//.PollingIntervalMS = DIN_POLL_INT_MS,
 		},
 	.dataInEp = {
 		.Header = {
@@ -147,7 +144,6 @@ const struct config_descriptor PROGMEM configDescriptor = {
 		.EndpointSize = DIN_EP_SIZE,
 		.Attributes = 
 			EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA,
-		//.PollingIntervalMS = DOUT_POLL_INT_MS,
 		},
 	};
 
