@@ -21,9 +21,8 @@ void hwInit(void) {
 
 void triggerWatchdogReset(void) {
 	wdt_enable(WDTO_2S);
-	cli();
-	statusleds__setHbtLed(1);
 	_delay_ms(1000);
+	cli();
 	usbcdc__detach();
 	statusleds__setUsbLed(0);
 	while(1) {}
@@ -43,6 +42,43 @@ void handleCommand(void) {
 		if(!strcmp(command.mnem, "DFU")) {
 			usbcdc__sendString("OK\r\n");
 			triggerWatchdogReset();
+			}
+		else if(!strcmp(command.mnem, "TLS")) {
+			usbcdc__sendStringNoFlush("TLS=");
+			for(int i = 0; i < gpio__nTerminals; ++i) {
+				snprintf(
+					msgOutBuf, sizeof(msgOutBuf), "%d", gpio__getTerminalNo(i)
+					);
+				usbcdc__sendStringNoFlush(msgOutBuf);
+				if(i < gpio__nTerminals - 1)
+					usbcdc__sendStringNoFlush(",");
+				}
+			usbcdc__sendString("\r\n");
+			}
+		else if(!strcmp(command.mnem, "TCP")) {
+			int terminalNo = command.leftArgs[0].uint8Val;
+			int supportsOutput = gpio__supportsOutput(terminalNo);
+			int supportsInput = gpio__supportsInput(terminalNo);
+			if (supportsOutput < 0 || supportsInput < 0) {
+				usbcdc__sendString("ERROR:VAL\r\n");
+				}
+			else {
+				snprintf(
+					msgOutBuf,
+					sizeof(msgOutBuf),
+					"TCP:%d=",
+					command.leftArgs[0].uint8Val
+					);
+				usbcdc__sendStringNoFlush(msgOutBuf);
+				if(supportsInput)
+					usbcdc__sendStringNoFlush("I");
+				if(supportsOutput)
+					usbcdc__sendStringNoFlush("O");
+				usbcdc__sendString("\r\n");
+				}
+			}
+		else if(!strcmp(command.mnem, "IDN")) {
+			usbcdc__sendString("IDN=FOO,BAR\r\n"); // TODO
 			}
 		else if(command.cmdType == CMDTYPE_QUERY) {
 			if(!strcmp(command.mnem, "OUT")) {
