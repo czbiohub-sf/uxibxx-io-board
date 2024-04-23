@@ -57,6 +57,7 @@ int parseArgVal(
 			scanfResult = sscanf((char *)buf, "%u", &uintVal);
 			if(scanfResult != 1)
 				return -1; // TODO maybe have distinct error values for different problems	
+			break;
 		default:
 			return -1;		
 		}
