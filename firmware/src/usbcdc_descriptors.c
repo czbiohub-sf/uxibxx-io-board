@@ -1,6 +1,7 @@
 #include <avr/pgmspace.h>
 #include <LUFA/Drivers/USB/USB.h>
 
+#include "board_info.h"
 #include "usbcdc_config.h"
 
 
@@ -8,16 +9,21 @@
 #define STRINGID_MFR 1
 #define STRINGID_PROD 2
 #define STRINGID_SERIAL 3
+#define SERIALNO_STR_LEN_MAX 16
 
 
-const USB_Descriptor_String_t PROGMEM langString = 
+static const USB_Descriptor_String_t PROGMEM langStringDesc = 
 	USB_STRING_DESCRIPTOR_ARRAY(LANGUAGE_ID_ENG);
-const USB_Descriptor_String_t PROGMEM mfrString =
+static const USB_Descriptor_String_t PROGMEM mfrStringDesc =
 	USB_STRING_DESCRIPTOR(MFR_STRING);
-const USB_Descriptor_String_t PROGMEM prodString =
+static const USB_Descriptor_String_t PROGMEM prodStringDesc =
 	USB_STRING_DESCRIPTOR(PROD_STRING);
-USB_Descriptor_String_t serialNo =
-	USB_STRING_DESCRIPTOR(L"One two three"); //TODO
+static USB_Descriptor_String_t serialNoStringDesc = {
+	.Header = {
+		.Type = DTYPE_String
+		},
+	.UnicodeString = {[SERIALNO_STR_LEN_MAX] = 0}
+	};
 
 const USB_Descriptor_Device_t PROGMEM deviceDescriptor = {
 	.Header = {
@@ -148,6 +154,18 @@ const struct config_descriptor PROGMEM configDescriptor = {
 	};
 
 
+void usbcdc__initSerialNo(void) {
+	static const char hardcoded[] = DEFAULT_SERIALNO_STR;
+	// TODO: enable pulling serial number from EEPROM
+	int strLen = strlen(hardcoded);
+	if(strLen > SERIALNO_STR_LEN_MAX)
+		strLen = SERIALNO_STR_LEN_MAX;
+	for(int i=0; i < strLen; ++i)
+		serialNoStringDesc.UnicodeString[i] = (uint16_t)hardcoded[i];
+	serialNoStringDesc.Header.Size = USB_STRING_LEN(strLen);
+	}
+
+
 uint16_t CALLBACK_USB_GetDescriptor(
 			const uint16_t wValue,
 			const uint16_t wIndex,
@@ -164,21 +182,21 @@ uint16_t CALLBACK_USB_GetDescriptor(
 		case DTYPE_String:
 			switch(descriptorIdx) {
 				case STRINGID_LANG:
-					*descriptorAddress = &langString;
+					*descriptorAddress = &langStringDesc;
 					*descriptorMemorySpace = MEMSPACE_FLASH;
-					return pgm_read_byte(&langString.Header.Size);
+					return pgm_read_byte(&langStringDesc.Header.Size);
 				case STRINGID_MFR:
-					*descriptorAddress = &mfrString;
+					*descriptorAddress = &mfrStringDesc;
 					*descriptorMemorySpace = MEMSPACE_FLASH;
-					return pgm_read_byte(&mfrString.Header.Size);
+					return pgm_read_byte(&mfrStringDesc.Header.Size);
 				case STRINGID_PROD:
-					*descriptorAddress = &prodString;
+					*descriptorAddress = &prodStringDesc;
 					*descriptorMemorySpace = MEMSPACE_FLASH;
-					return pgm_read_byte(&prodString.Header.Size);
+					return pgm_read_byte(&prodStringDesc.Header.Size);
 				case STRINGID_SERIAL:
-					*descriptorAddress = &serialNo;
+					*descriptorAddress = &serialNoStringDesc;
 					*descriptorMemorySpace = MEMSPACE_RAM;
-					return serialNo.Header.Size;
+					return serialNoStringDesc.Header.Size;
 				}
 		case DTYPE_Configuration:
 			*descriptorAddress = &configDescriptor;

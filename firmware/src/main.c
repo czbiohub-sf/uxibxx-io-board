@@ -13,10 +13,20 @@
 #include "mstick.h"
 #include "statusleds.h"
 #include "usbcdc.h"
+#include "board_info.h"
 
 
-void hwInit(void) {
-	clock_prescale_set(clock_div_1);
+#define BOOTLOADER_TRIGGER_KEY 0xCB49
+
+
+static uint16_t blJumpTrigger __attribute__((section (".noinit")));
+
+
+void maybeJumpToBootloader(void) {
+	if((MCUSR & _BV(WDRF)) && (blJumpTrigger == BOOTLOADER_TRIGGER_KEY)) {
+		asm volatile("jmp 0x7000"::);
+		}
+	blJumpTrigger = 0;
 	}
 
 void triggerWatchdogReset(void) {
@@ -24,8 +34,25 @@ void triggerWatchdogReset(void) {
 	_delay_ms(1000);
 	cli();
 	usbcdc__detach();
+	statusleds__setHbtLed(1);
 	statusleds__setUsbLed(0);
 	while(1) {}
+	}
+
+void triggerResetToApp(void) {
+	triggerWatchdogReset();
+	}
+
+void triggerResetToBootloader(void) {
+	blJumpTrigger = BOOTLOADER_TRIGGER_KEY;
+	triggerWatchdogReset();
+	}
+
+void hwInit(void) {
+	maybeJumpToBootloader();
+	MCUSR = 0;
+	wdt_disable();
+	clock_prescale_set(clock_div_1);
 	}
 
 void handleCommand(void) {
@@ -39,9 +66,13 @@ void handleCommand(void) {
 		cmdproc__getCommand(&command);
 		if(command.parseError)
 			usbcdc__sendString("ERROR:FMT\r\n");
-		if(!strcmp(command.mnem, "DFU")) {
+		else if(!strcmp(command.mnem, "DFU")) {
 			usbcdc__sendString("OK\r\n");
-			triggerWatchdogReset();
+			triggerResetToBootloader();
+			}
+		else if(!strcmp(command.mnem, "RST")) {
+			usbcdc__sendString("OK\r\n");
+			triggerResetToApp();
 			}
 		else if(!strcmp(command.mnem, "TLS")) {
 			usbcdc__sendStringNoFlush("TLS=");
@@ -78,7 +109,9 @@ void handleCommand(void) {
 				}
 			}
 		else if(!strcmp(command.mnem, "IDN")) {
-			usbcdc__sendString("IDN=FOO,BAR\r\n"); // TODO
+			usbcdc__sendString(
+				"IDN=" BOARD_MODEL_STR "," DEFAULT_SERIALNO_STR "\r\n");
+				// TODO implement actual serial number storage
 			}
 		else if(command.cmdType == CMDTYPE_QUERY) {
 			if(!strcmp(command.mnem, "OUT")) {

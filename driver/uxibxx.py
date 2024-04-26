@@ -4,45 +4,42 @@ from typing import Union
 import serial
 
 
-class FbibxxIoBoardError(Exception):
-    pass
+class _errors:
+    class FbibxxIoBoardError(Exception):
+        pass
+
+    class RemoteError(FbibxxIoBoardError):
+        pass
+
+    class InvalidTerminalNo(FbibxxIoBoardError):
+        pass
+
+    class ResponseTimeout(FbibxxIoBoardError):
+        pass
+
+    class BadResponse(FbibxxIoBoardError):
+        pass
+
+    class Unsupported(FbibxxIoBoardError):
+        pass
 
 
-class RemoteError(FbibxxIoBoardError):
-    pass
+class _enums:
+    class IoDirection(Enum):
+        INPUT = "in"
+        OUTPUT = "out"
 
 
-class InvalidTerminalNo(FbibxxIoBoardError):
-    pass
-
-
-class ResponseTimeout(FbibxxIoBoardError):
-    pass
-
-
-class BadResponse(FbibxxIoBoardError):
-    pass
-
-
-class Unsupported(FbibxxIoBoardError):
-    pass
-
-
-class IoDirection(Enum):
-    INPUT = "in"
-    OUTPUT = "out"
-
-
-class FbibxxIoBoard:
+class UxibXxIoBoard:
     SERIAL_TIMEOUT_S = 1.
 
-    Error = FbibxxIoBoardError
-    InvalidTerminalNo = InvalidTerminalNo
-    ResponseTimeout = ResponseTimeout
-    Unsupported = Unsupported
-    RemoteError = RemoteError
-    BadResponse = BadResponse
-    IoDirection = IoDirection
+    Error = _errors.FbibxxIoBoardError
+    InvalidTerminalNo = _errors.InvalidTerminalNo
+    ResponseTimeout = _errors.ResponseTimeout
+    Unsupported = _errors.Unsupported
+    RemoteError = _errors.RemoteError
+    BadResponse = _errors.BadResponse
+    IoDirection = _enums.IoDirection
 
     _direction_codes = [
         (0, IoDirection.INPUT),
@@ -70,7 +67,7 @@ class FbibxxIoBoard:
         try:
             term_nos = [int(x) for x in response]
         except ValueError:
-            raise BadResponse(response)
+            raise self.BadResponse(response)
         return term_nos
 
     def _read_response(self):
@@ -79,46 +76,49 @@ class FbibxxIoBoard:
             raise self.ResponseTimeout()
         response = response.strip()
         if response.startswith("ERROR"):
-            raise RemoteError(response)
+            raise self.RemoteError(response)
         return response
 
     def _ask(self, cmd: str):
         self._ser_port.write(f"{cmd}?\r".encode('ascii'))
         response = self._read_response()
         if "=" not in response:
-            raise BadResponse(response)
+            raise self.BadResponse(response)
         return response.rsplit("=", 1)[-1]
 
     def _tell(self, cmd: str):
         self._ser_port.write(f"{cmd}\r".encode('ascii'))
         response = self._read_response()
         if response != "OK":
-            raise BadResponse(response)
+            raise self.BadResponse(response)
 
     def _check_output_ok(self, n: int):
         if n not in self._terminal_capabilities:
-            raise InvalidTerminalNo(n)
+            raise self.InvalidTerminalNo(n)
         if n not in self.output_nos:
-            raise Unsupported(f"Terminal {n} does not have output capability")
+            raise self.Unsupported(
+                f"Terminal {n} does not have output capability")
 
     def _check_input_ok(self, n: int):
         if n not in self._terminal_capabilities:
-            raise InvalidTerminalNo(n)
+            raise self.InvalidTerminalNo(n)
         if n not in self.input_nos:
-            raise Unsupported(f"Terminal {n} does not have input capability")
+            raise self.Unsupported(
+                f"Terminal {n} does not have input capability")
 
     def _check_dirchange_ok(self, n: int):
         if n not in self._terminal_capabilities:
-            raise InvalidTerminalNo(n)
+            raise self.InvalidTerminalNo(n)
         if n not in self.input_nos or n not in self.output_nos:
-            raise Unsupported(
+            raise self.Unsupported(
                 f"Terminal {n} does not support changing I/O direction")
 
     def get_input(self, n: int):
         if n not in self._terminal_capabilities:
-            raise InvalidTerminalNo(n)
+            raise self.InvalidTerminalNo(n)
         if n not in self.input_nos:
-            raise Unsupported(f"Terminal {n} does not have input capability")
+            raise self.Unsupported(
+                f"Terminal {n} does not have input capability")
         answer = self._ask(f"INP:{n}")
         return(bool(int(answer)))
 
@@ -133,13 +133,13 @@ class FbibxxIoBoard:
 
     def get_direction(self, n: int):
         if n not in self._terminal_capabilities:
-            raise InvalidTerminalNo(n)
+            raise self.InvalidTerminalNo(n)
         response = self._ask(f"DIR:{n}")
         try:
             dir_int = int(response)
             return dict(self._direction_codes)[dir_int]
         except (ValueError, KeyError):
-            raise BadResponse(response)
+            raise self.BadResponse(response)
 
     def set_direction(
             self, n: int,
@@ -178,12 +178,14 @@ class FbibxxIoBoard:
 
 
 if __name__ == "__main__":
-    board = FbibxxIoBoard.from_serial_portname("/dev/ttyACM0")
+    board = UxibXxIoBoard.from_serial_portname("/dev/ttyACM0")
     print("model:", board.board_model)
     print("id:", board.board_id)
     print("terminals:", board.terminal_nos)
     print("inputs:", board.input_nos)
     print("outputs:", board.output_nos)
+
+    board._ask("lol")
 
     print("setting terminal 13 to input")
     board.set_direction(13, board.IoDirection.OUTPUT)
