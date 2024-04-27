@@ -14,23 +14,23 @@ typedef struct {
 	int initialOutput;
 	} gpio_terminal_def_t;
 
-// TODO fill in actual values
 static const gpio_terminal_def_t gpioTerminalDefs[] = {
-	{1, &DDRB, &PINB, &PORTB, PB5, DIR_OUT, 0},
-	{2, &DDRB, &PINB, &PORTB, PB5, DIR_OUT, 0},
-	{3, &DDRB, &PINB, &PORTB, PB5, DIR_OUT, 0},
-	{4, &DDRB, &PINB, &PORTB, PB5, DIR_OUT, 0},
-	{5, &DDRB, &PINB, &PORTB, PB5, DIR_OUT, 0},
-	{6, &DDRB, &PINB, &PORTB, PB5, DIR_OUT, 0},
-	{7, &DDRB, &PINB, &PORTB, PB5, DIR_OUT, 0},
-	{8, &DDRB, &PINB, &PORTB, PB5, DIR_OUT, 0},
-	{9, &DDRB, &PINB, &PORTB, PB5, DIR_OUT, 0},
-	{10, &DDRB, &PINB, &PORTB, PB5, DIR_OUT, 0},
-	{11, &DDRB, &PINB, &PORTB, PB5, DIR_OUT, 0},
-	{12, &DDRB, &PINB, &PORTB, PB5, DIR_OUT, 0},
-	{13, &DDRB, &PINB, &PORTB, PB5, DIR_IN, 0},
-	{14, &DDRB, &PINB, &PORTB, PB6, DIR_IN, 0},
+	{1,  &DDRB, NULL,  &PORTB, PB6, DIR_OUT, 0},
+	{2,  &DDRB, NULL,  &PORTB, PB2, DIR_OUT, 0},
+	{3,  &DDRB, NULL,  &PORTB, PB3, DIR_OUT, 0},
+	{4,  &DDRB, NULL,  &PORTB, PB1, DIR_OUT, 0},
+	{5,  &DDRF, NULL,  &PORTF, PF7, DIR_OUT, 0},
+	{6,  &DDRF, NULL,  &PORTF, PF6, DIR_OUT, 0},
+	{7,  &DDRB, NULL,  &PORTB, PB4, DIR_OUT, 0},
+	{8,  &DDRE, NULL,  &PORTE, PE6, DIR_OUT, 0},
+	{9,  &DDRC, NULL,  &PORTC, PC6, DIR_OUT, 0},
+	{10, &DDRD, NULL,  &PORTD, PD4, DIR_OUT, 0},
+	{11, &DDRF, NULL,  &PORTF, PF4, DIR_OUT, 0},
+	{12, &DDRF, NULL,  &PORTF, PF5, DIR_OUT, 0},
+	{13, &DDRD, &PIND, &PORTD, PD7, DIR_IN,  0},
+	{14, &DDRB, &PINB, &PORTB, PB5, DIR_IN,  0},
 	};
+
 const int gpio__nTerminals =
 	sizeof(gpioTerminalDefs) / sizeof(gpio_terminal_def_t);
 
