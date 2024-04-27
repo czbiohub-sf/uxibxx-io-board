@@ -1,11 +1,19 @@
 #include <stdint.h>
 
+#include <avr/pgmspace.h>
+
 
 #define CMDPROC_MNEM_MAX_LEN 16
 #define CMDPROC_ARG_MAX_LEN 16
 #define CMDPROC_MAX_N_LEFTARGS 1
 #define CMDPROC_MAX_N_RIGHTARGS 1
 
+typedef enum {
+	ERROR_CMD = 1,
+	ERROR_N_ARGS = 2,
+	ERROR_ARG_FMT = 4,
+	ERROR_ARG_VAL = 8,
+	} cmdproc_error_t;
 
 typedef enum {
 	CMDTYPE_DO = 1,
@@ -34,11 +42,10 @@ typedef struct {
 	int nRightArgs;
 	cmdproc_argval_t leftArgs[CMDPROC_MAX_N_LEFTARGS];
 	cmdproc_argval_t rightArgs[CMDPROC_MAX_N_LEFTARGS];
-	int parseError;
+	cmdproc_error_t parseError;
 	} cmdproc_command_t;
 
 typedef struct {
-	int cmdId;
 	cmdproc_cmdtype_t cmdType;
 	char mnem[CMDPROC_MNEM_MAX_LEN + 1];
 	int nLeftArgs;
@@ -48,7 +55,11 @@ typedef struct {
 	} cmdproc_cmd_spec_t;
 
 
+extern const cmdproc_cmd_spec_t cmdproc__commandSpecs[] PROGMEM;
+extern const int cmdproc__commandSpecsLen;
+
+
 void cmdproc__init(void);
 void cmdproc__processIncomingChar(uint8_t ch);
 int cmdproc__hasCommandWaiting(void);
-int cmdproc__getCommand(cmdproc_command_t *dest);
+cmdproc_error_t cmdproc__getCommand(cmdproc_command_t *dest);

@@ -1,17 +1,41 @@
+#include <avr/pgmspace.h>
+
 #include "cmdproc.h"
 
 
-enum commands {
-	COMMAND_INP_QUERY,
-	COMMAND_OUT_QUERY,
-	COMMAND_OUT_SET,
-	COMMAND_DIR_QUERY,
-	COMMAND_DIR_SET,
-	};
-
-cmdproc_cmd_spec_t cmdproc_commands[] = {
+const cmdproc_cmd_spec_t cmdproc__commandSpecs[] PROGMEM = {
 	{
-		.cmdId = COMMAND_INP_QUERY,
+		.cmdType = CMDTYPE_QUERY,
+		.mnem="IDN",
+		.nLeftArgs=0,
+		.nRightArgs=0,
+		},
+	{
+		.cmdType = CMDTYPE_DO,
+		.mnem="DFU",
+		.nLeftArgs=0,
+		.nRightArgs=0,
+		},
+	{
+		.cmdType = CMDTYPE_DO,
+		.mnem="RST",
+		.nLeftArgs=0,
+		.nRightArgs=0,
+		},
+	{
+		.cmdType = CMDTYPE_QUERY,
+		.mnem="TLS",
+		.nLeftArgs=0,
+		.nRightArgs=0,
+		},
+	{
+		.cmdType = CMDTYPE_QUERY,
+		.mnem="TCP",
+		.nLeftArgs=1,
+		.nRightArgs=0,
+		.leftArgTypes={ARGTYPE_UINT8},
+		},
+	{
 		.cmdType = CMDTYPE_QUERY,
 		.mnem="INP",
 		.nLeftArgs=1,
@@ -19,7 +43,6 @@ cmdproc_cmd_spec_t cmdproc_commands[] = {
 		.leftArgTypes={ARGTYPE_UINT8},
 		},
 	{
-		.cmdId = COMMAND_OUT_QUERY,
 		.cmdType = CMDTYPE_QUERY,
 		.mnem="OUT",
 		.nLeftArgs=1, 
@@ -27,7 +50,6 @@ cmdproc_cmd_spec_t cmdproc_commands[] = {
 		.leftArgTypes={ARGTYPE_UINT8},
 		},
 	{
-		.cmdId = COMMAND_OUT_SET,
 		.cmdType = CMDTYPE_SET,
 		.mnem="OUT",
 		.nLeftArgs=1, 
@@ -36,7 +58,6 @@ cmdproc_cmd_spec_t cmdproc_commands[] = {
 		.rightArgTypes={ARGTYPE_UINT8}
 		},
 	{
-		.cmdId = COMMAND_DIR_QUERY,
 		.cmdType = CMDTYPE_QUERY,
 		.mnem="DIR",
 		.nLeftArgs=1, 
@@ -44,7 +65,6 @@ cmdproc_cmd_spec_t cmdproc_commands[] = {
 		.leftArgTypes={ARGTYPE_UINT8},
 		},
 	{
-		.cmdId = COMMAND_DIR_SET,
 		.cmdType = CMDTYPE_SET,
 		.mnem="DIR",
 		.nLeftArgs=1, 
@@ -53,3 +73,5 @@ cmdproc_cmd_spec_t cmdproc_commands[] = {
 		.rightArgTypes={ARGTYPE_UINT8}
 		},
 	};
+
+const int cmdproc__commandSpecsLen = sizeof(cmdproc__commandSpecs) / sizeof(cmdproc__commandSpecs[0]);

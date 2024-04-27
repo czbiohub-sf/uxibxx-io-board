@@ -76,17 +76,64 @@ int parseArgVal(
 	return -1;
 	}
 
-int cmdproc__getCommand(cmdproc_command_t *dest) {
+int getCommandSpec(
+		cmdproc_cmd_spec_t *dest, const char *mnem, cmdproc_cmdtype_t cmdType
+		) {
+	for(int i = 0; i < cmdproc__commandSpecsLen; ++i) {
+		memcpy_P(
+			dest,
+			&cmdproc__commandSpecs[i],
+			sizeof(cmdproc_cmd_spec_t)
+			);
+		if(
+				!strncmp(mnem, dest->mnem, CMDPROC_MNEM_MAX_LEN)
+				&& dest->cmdType == cmdType
+				)
+			return i;
+		}
+	return -1;
+	}
+
+cmdproc_error_t parseArgs(char *str, cmdproc_argval_t *destArgs, const cmdproc_argtype_t *argTypes, int nArgs) {
+	char argBuf[CMDPROC_ARG_MAX_LEN + 1];
+	int argIdx = 0;
+	char *argStart = str;
+	char *nextArgStart = str;
+	char *argEnd;
+	while(*argStart) {
+		if(argIdx >= nArgs)
+			return ERROR_N_ARGS;
+		if((argEnd = strchr(argStart, ARG_DELIMITER))) {
+			*argEnd = 0;
+			nextArgStart = argEnd + 1;
+			}
+		else {
+			nextArgStart = NULL;
+			}
+		if(strlen(argStart) > CMDPROC_ARG_MAX_LEN)
+			return ERROR_ARG_FMT;
+		strncpy(argBuf, argStart, CMDPROC_ARG_MAX_LEN);
+		// TODO we don't actually need to do that copy, could enforce length in parseArgVal()
+		if(parseArgVal(&destArgs[argIdx], argBuf, argTypes[argIdx]))
+			return ERROR_ARG_FMT;
+		argIdx++;
+		argStart = nextArgStart;
+		}
+	if(argIdx != nArgs)
+		return ERROR_N_ARGS;
+	return 0;
+	}
+
+cmdproc_error_t cmdproc__getCommand(cmdproc_command_t *dest) {
 	int error = 0;
 	char leftBuf[INPUT_BUF_SIZE] = {0};
 	char rightBuf[INPUT_BUF_SIZE] = {0};
-	char argBuf[CMDPROC_ARG_MAX_LEN + 1] = {0};
 	char *leftEnd;
 	char *mnemEnd;
-	char *argEnd;
-	char *leftArgStart;
-	char *nextLeftArgStart;
-	int leftArgIdx = 0;
+	cmdproc_cmd_spec_t cmdSpec;
+	int haveLeftArgs = 0;
+
+
 	if((leftEnd = strchr((char *)inputBuffer, QUERY_OP_CH))) {
 		dest->cmdType = CMDTYPE_QUERY;
 		}
@@ -98,45 +145,51 @@ int cmdproc__getCommand(cmdproc_command_t *dest) {
 		leftEnd = (char *)&inputBuffer[inputNBytes];
 		}
 	*leftEnd = 0;
+
 	strcpy(leftBuf, (char *)inputBuffer);
 	if(leftEnd < (char *)&inputBuffer[inputNBytes]) {
 		strcpy(rightBuf, leftEnd + 1);
 		}
 	// TODO: process the mnem earlier, look up the command spec, parse args according to specified type
 	if((mnemEnd = strchr(leftBuf, LEFTARGS_START_CH))) {
-		leftArgStart = mnemEnd + 1;
-		while(*leftArgStart) {
-			if(leftArgIdx >= CMDPROC_MAX_N_LEFTARGS) {
-				error |= 8;
-				break;
-				}
-			if((argEnd = strchr(leftArgStart, ARG_DELIMITER))) {
-				*argEnd = 0;
-				nextLeftArgStart = argEnd + 1;
-				}
-			else {
-				nextLeftArgStart = NULL;
-				}
-			if(strlen(leftArgStart) > CMDPROC_ARG_MAX_LEN)
-				error |= 4;
-			strncpy(argBuf, leftArgStart, CMDPROC_ARG_MAX_LEN);
-			error |= 2 * !!parseArgVal(
-				&dest->leftArgs[leftArgIdx], argBuf, ARGTYPE_UINT16); // TODO actually use command specs
-			leftArgIdx++;
-			leftArgStart = nextLeftArgStart;
-			}
+		haveLeftArgs = 1;
 		}
 	else {
 		mnemEnd = &leftBuf[strlen(leftBuf)];
 		}
 	*mnemEnd = 0;
 	if(strlen(leftBuf) > CMDPROC_MNEM_MAX_LEN)
-		error |= 16;
-	strncpy(dest->mnem, leftBuf, CMDPROC_MNEM_MAX_LEN);
+		error = ERROR_CMD;
+	else {
+		strncpy(dest->mnem, leftBuf, CMDPROC_MNEM_MAX_LEN);
+		if(getCommandSpec(&cmdSpec, dest->mnem, dest->cmdType) < 0)
+			error = ERROR_CMD;
+		}
 
-	//temp TODO
-	if(strlen(rightBuf)) {
-		error |= 32 * !!parseArgVal(&dest->rightArgs[0], rightBuf, ARGTYPE_UINT16);
+	if(!error) {
+		if(haveLeftArgs) {
+			error = parseArgs(
+				mnemEnd + 1,
+				dest->leftArgs,
+				cmdSpec.leftArgTypes,
+				cmdSpec.nLeftArgs
+				);
+			}
+		else if(cmdSpec.nLeftArgs)
+			error = ERROR_N_ARGS;
+		}
+
+	if(!error) {
+		if(strlen(rightBuf)){
+			error = parseArgs(
+				rightBuf,
+				dest->rightArgs,
+				cmdSpec.rightArgTypes,
+				cmdSpec.nRightArgs
+				);
+			}
+		else if(cmdSpec.nRightArgs)
+			error = ERROR_N_ARGS;
 		}
 
 	dest->parseError = error;

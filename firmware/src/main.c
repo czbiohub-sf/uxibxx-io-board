@@ -64,8 +64,18 @@ void handleCommand(void) {
 	if(cmdproc__hasCommandWaiting()) {
 		statusleds__winkUsbLed();
 		cmdproc__getCommand(&command);
-		if(command.parseError)
-			usbcdc__sendString("ERROR:FMT\r\n");
+		if(command.parseError) {
+			switch(command.parseError){
+				case ERROR_CMD:
+					usbcdc__sendString("ERROR:CMD\r\n");
+					break;
+				case ERROR_N_ARGS:
+					usbcdc__sendString("ERROR:ARG\r\n");
+					break;
+				default:
+					usbcdc__sendString("ERROR:UNK\r\n");
+				}
+			}
 		else if(!strcmp(command.mnem, "DFU")) {
 			usbcdc__sendString("OK\r\n");
 			triggerResetToBootloader();
@@ -171,7 +181,7 @@ void handleCommand(void) {
 				}
 			}
 		else {
-			usbcdc__sendString("ERROR:CMD\r\n");
+			usbcdc__sendString("ERROR:IMP\r\n");
 			}
 		}
 	while(usbcdc__hasInputWaiting()) {
