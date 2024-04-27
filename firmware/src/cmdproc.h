@@ -55,7 +55,7 @@ typedef struct {
 	} cmdproc_cmd_spec_t;
 
 
-extern const cmdproc_cmd_spec_t cmdproc__commandSpecs[] PROGMEM;
+extern const cmdproc_cmd_spec_t PROGMEM cmdproc__commandSpecs[];
 extern const int cmdproc__commandSpecsLen;
 
 

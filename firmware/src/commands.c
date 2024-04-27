@@ -3,7 +3,7 @@
 #include "cmdproc.h"
 
 
-const cmdproc_cmd_spec_t cmdproc__commandSpecs[] PROGMEM = {
+const cmdproc_cmd_spec_t PROGMEM cmdproc__commandSpecs[] = {
 	{
 		.cmdType = CMDTYPE_QUERY,
 		.mnem="IDN",
