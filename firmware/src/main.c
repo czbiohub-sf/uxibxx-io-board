@@ -134,7 +134,7 @@ void handleCommand(void) {
 				cmdResult = gpio__getDirection(command.leftArgs[0].uint8Val);
 				}
 			else {
-				usbcdc__sendString("ERROR:CMD\r\n");
+				usbcdc__sendString("ERROR:IMP\r\n");
 				abort = 1;
 				}
 			if(!abort) {
@@ -168,7 +168,7 @@ void handleCommand(void) {
 					);
 				}
 			else {
-				usbcdc__sendString("ERROR:CMD\r\n");
+				usbcdc__sendString("ERROR:IMP\r\n");
 				abort = 1;
 				}
 			if(!abort) {
