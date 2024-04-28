@@ -58,6 +58,10 @@ int parseArgVal(
 			if(scanfResult != 1)
 				return -1; // TODO maybe have distinct error values for different problems	
 			break;
+		case ARGTYPE_STRING:
+			strncpy(dest->stringVal, buf, CMDPROC_ARG_MAX_LEN);
+			dest->stringVal[CMDPROC_ARG_MAX_LEN] = 0;
+			return 0;
 		default:
 			return -1;		
 		}
@@ -95,7 +99,7 @@ int getCommandSpec(
 	}
 
 cmdproc_error_t parseArgs(char *str, cmdproc_argval_t *destArgs, const cmdproc_argtype_t *argTypes, int nArgs) {
-	char argBuf[CMDPROC_ARG_MAX_LEN + 1];
+	char argBuf[CMDPROC_ARG_MAX_LEN + 1] = {[CMDPROC_ARG_MAX_LEN] = 0};
 	int argIdx = 0;
 	char *argStart = str;
 	char *nextArgStart = str;
@@ -117,6 +121,8 @@ cmdproc_error_t parseArgs(char *str, cmdproc_argval_t *destArgs, const cmdproc_a
 		if(parseArgVal(&destArgs[argIdx], argBuf, argTypes[argIdx]))
 			return ERROR_ARG_FMT;
 		argIdx++;
+		if(!nextArgStart)
+			break;
 		argStart = nextArgStart;
 		}
 	if(argIdx != nArgs)
@@ -150,7 +156,6 @@ cmdproc_error_t cmdproc__getCommand(cmdproc_command_t *dest) {
 	if(leftEnd < (char *)&inputBuffer[inputNBytes]) {
 		strcpy(rightBuf, leftEnd + 1);
 		}
-	// TODO: process the mnem earlier, look up the command spec, parse args according to specified type
 	if((mnemEnd = strchr(leftBuf, LEFTARGS_START_CH))) {
 		haveLeftArgs = 1;
 		}

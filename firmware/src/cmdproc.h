@@ -22,6 +22,7 @@ typedef enum {
 	} cmdproc_cmdtype_t;
 
 typedef enum {
+	ARGTYPE_STRING,
 	ARGTYPE_UINT8,
 	ARGTYPE_UINT16,
 	ARGTYPE_INT8,
@@ -33,6 +34,7 @@ typedef union {
 	uint16_t uint16Val;
 	int8_t int8Val;
 	int16_t int16Val;
+	uint8_t stringVal[CMDPROC_ARG_MAX_LEN + 1];
 	} cmdproc_argval_t;
 
 typedef struct {
@@ -41,7 +43,7 @@ typedef struct {
 	int nLeftArgs;
 	int nRightArgs;
 	cmdproc_argval_t leftArgs[CMDPROC_MAX_N_LEFTARGS];
-	cmdproc_argval_t rightArgs[CMDPROC_MAX_N_LEFTARGS];
+	cmdproc_argval_t rightArgs[CMDPROC_MAX_N_RIGHTARGS];
 	cmdproc_error_t parseError;
 	} cmdproc_command_t;
 
@@ -51,7 +53,7 @@ typedef struct {
 	int nLeftArgs;
 	int nRightArgs;
 	cmdproc_argtype_t leftArgTypes[CMDPROC_MAX_N_LEFTARGS];
-	cmdproc_argtype_t rightArgTypes[CMDPROC_MAX_N_LEFTARGS];
+	cmdproc_argtype_t rightArgTypes[CMDPROC_MAX_N_RIGHTARGS];
 	} cmdproc_cmd_spec_t;
 
 
