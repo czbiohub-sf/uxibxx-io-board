@@ -13,7 +13,7 @@ CC_CMD = $(CC) -mmcu=$(MCU) $(CCOPTS)
 
 TARGET = main
 OBJS = main.o mstick.o statusleds.o usbcdc.o usbcdc_descriptors.o cmdproc.o \
-	commands.o gpio.o
+	commands.o gpio.o nvparams.o
 LUFA_CORE_OBJS = USBTask.o Events.o DeviceStandardReq.o 
 LUFA_AVR_OBJS = Device_AVR8.o USBController_AVR8.o USBInterrupt_AVR8.o \
 	Endpoint_AVR8.o EndpointStream_AVR8.o

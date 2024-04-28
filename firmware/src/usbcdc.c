@@ -28,8 +28,8 @@ USB_ClassInfo_CDC_Device_t cdcInterface = {
 
 
 
-void usbcdc__init(void) {
-	usbcdc__initSerialNo();
+void usbcdc__init(const char *serNo) {
+	usbcdc__initSerialNo(serNo);
 	USB_Init(
 		USB_OPT_REG_ENABLED | USB_OPT_AUTO_PLL | USB_DEVICE_OPT_FULLSPEED);
 	}

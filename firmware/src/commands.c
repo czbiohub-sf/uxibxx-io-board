@@ -11,6 +11,12 @@ const cmdproc_cmd_spec_t PROGMEM cmdproc__commandSpecs[] = {
 		.nRightArgs=0,
 		},
 	{
+		.cmdType = CMDTYPE_SET,
+		.mnem="SER",
+		.nRightArgs=1,
+		.rightArgTypes={ARGTYPE_STRING},
+		},
+	{
 		.cmdType = CMDTYPE_DO,
 		.mnem="DFU",
 		.nLeftArgs=0,
@@ -19,6 +25,24 @@ const cmdproc_cmd_spec_t PROGMEM cmdproc__commandSpecs[] = {
 	{
 		.cmdType = CMDTYPE_DO,
 		.mnem="RST",
+		.nLeftArgs=0,
+		.nRightArgs=0,
+		},
+	{
+		.cmdType = CMDTYPE_DO,
+		.mnem="DEF",
+		.nLeftArgs=0,
+		.nRightArgs=0,
+		},
+	{
+		.cmdType = CMDTYPE_DO,
+		.mnem="NVS",
+		.nLeftArgs=0,
+		.nRightArgs=0,
+		},
+	{
+		.cmdType = CMDTYPE_DO,
+		.mnem="NVL",
 		.nLeftArgs=0,
 		.nRightArgs=0,
 		},

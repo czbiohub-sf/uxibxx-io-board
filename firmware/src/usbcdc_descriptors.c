@@ -154,14 +154,12 @@ const struct config_descriptor PROGMEM configDescriptor = {
 	};
 
 
-void usbcdc__initSerialNo(void) {
-	static const char hardcoded[] = DEFAULT_SERIALNO_STR;
-	// TODO: enable pulling serial number from EEPROM
-	int strLen = strlen(hardcoded);
+void usbcdc__initSerialNo(const char *serNo) {
+	int strLen = strlen(serNo);
 	if(strLen > SERIALNO_STR_LEN_MAX)
 		strLen = SERIALNO_STR_LEN_MAX;
 	for(int i=0; i < strLen; ++i)
-		serialNoStringDesc.UnicodeString[i] = (uint16_t)hardcoded[i];
+		serialNoStringDesc.UnicodeString[i] = (uint16_t)serNo[i];
 	serialNoStringDesc.Header.Size = USB_STRING_LEN(strLen);
 	}
 
