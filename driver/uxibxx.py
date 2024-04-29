@@ -186,9 +186,9 @@ class UxibXxIoBoard:
 #     print("outputs:", board.output_nos)
 
 #     print("setting terminal 13 to input")
-#     board.set_direction(13, board.IoDirection.OUTPUT)
+#     board.set_direction(13, board.IoDirection.INPUT)  # direction enum
 #     print("setting terminal 14 to output")
-#     board.set_direction(14, board.IoDirection.OUTPUT)
+#     board.set_direction(14, "out")  # direction string
 #     print("wiggling")
 #     while True:
 #         board.set_output(14, True)
