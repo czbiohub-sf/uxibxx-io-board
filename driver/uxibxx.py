@@ -177,21 +177,19 @@ class UxibXxIoBoard:
             ]
 
 
-if __name__ == "__main__":
-    board = UxibXxIoBoard.from_serial_portname("/dev/ttyACM0")
-    print("model:", board.board_model)
-    print("id:", board.board_id)
-    print("terminals:", board.terminal_nos)
-    print("inputs:", board.input_nos)
-    print("outputs:", board.output_nos)
+# if __name__ == "__main__":
+#     board = UxibXxIoBoard.from_serial_portname("/dev/ttyACM0")
+#     print("model:", board.board_model)
+#     print("id:", board.board_id)
+#     print("terminals:", board.terminal_nos)
+#     print("inputs:", board.input_nos)
+#     print("outputs:", board.output_nos)
 
-    board._ask("lol")
-
-    print("setting terminal 13 to input")
-    board.set_direction(13, board.IoDirection.OUTPUT)
-    print("setting terminal 14 to output")
-    board.set_direction(14, board.IoDirection.OUTPUT)
-    print("wiggling")
-    while True:
-        board.set_output(14, True)
-        board.set_output(14, False)
+#     print("setting terminal 13 to input")
+#     board.set_direction(13, board.IoDirection.OUTPUT)
+#     print("setting terminal 14 to output")
+#     board.set_direction(14, board.IoDirection.OUTPUT)
+#     print("wiggling")
+#     while True:
+#         board.set_output(14, True)
+#         board.set_output(14, False)
