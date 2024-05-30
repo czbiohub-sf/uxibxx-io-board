@@ -5,22 +5,22 @@ import serial
 
 
 class _errors:
-    class FbibxxIoBoardError(Exception):
+    class UxibxxIoBoardError(Exception):
         pass
 
-    class RemoteError(FbibxxIoBoardError):
+    class RemoteError(UxibxxIoBoardError):
         pass
 
-    class InvalidTerminalNo(FbibxxIoBoardError):
+    class InvalidTerminalNo(UxibxxIoBoardError):
         pass
 
-    class ResponseTimeout(FbibxxIoBoardError):
+    class ResponseTimeout(UxibxxIoBoardError):
         pass
 
-    class BadResponse(FbibxxIoBoardError):
+    class BadResponse(UxibxxIoBoardError):
         pass
 
-    class Unsupported(FbibxxIoBoardError):
+    class Unsupported(UxibxxIoBoardError):
         pass
 
 
@@ -30,10 +30,10 @@ class _enums:
         OUTPUT = "out"
 
 
-class UxibXxIoBoard:
+class UxibxxIoBoard:
     SERIAL_TIMEOUT_S = 1.
 
-    Error = _errors.FbibxxIoBoardError
+    Error = _errors.UxibxxIoBoardError
     InvalidTerminalNo = _errors.InvalidTerminalNo
     ResponseTimeout = _errors.ResponseTimeout
     Unsupported = _errors.Unsupported
