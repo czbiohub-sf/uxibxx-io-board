@@ -4,6 +4,9 @@ from typing import Union
 import serial
 
 
+__all__ = ["UxibxxIoBoard"]
+
+
 class _errors:
     class UxibxxIoBoardError(Exception):
         pass
