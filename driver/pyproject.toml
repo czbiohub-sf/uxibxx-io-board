@@ -7,7 +7,7 @@ include = ["uxibxx"]
 
 [project]
 name = "uxibxx-io-board"
-version = "0.1.0"
+version = "0.1.1"
 readme = "README.md"
 requires-python = ">=3.6"
 license = {file = "LICENSE"}

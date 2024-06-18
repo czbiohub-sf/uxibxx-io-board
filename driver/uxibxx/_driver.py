@@ -1,7 +1,8 @@
 from enum import Enum
-from typing import List, Union
+from typing import List, Optional, Tuple, Union
 
 import serial
+import serial.tools.list_ports
 
 from . import types
 
@@ -12,8 +13,13 @@ class UxibxxIoBoard:
     UXIB-DN12.
     """
     SERIAL_TIMEOUT_S = 1.
+    USB_HW_IDS = {
+        (0x4743, 0xB499),
+        }
 
-    Error = types.UxibxxIoBoardError
+    UxibxxIoBoardError = types.UxibxxIoBoardError
+    DeviceNotFound = types.DeviceNotFound
+    IdMismatch = types.IdMismatch
     InvalidTerminalNo = types.InvalidTerminalNo
     ResponseTimeout = types.ResponseTimeout
     Unsupported = types.Unsupported
@@ -27,35 +33,135 @@ class UxibxxIoBoard:
         (1, IoDirection.OUTPUT),
         ]
 
-    def __init__(self, ser_port: serial.Serial):
+    def __init__(self, ser_port: serial.Serial,
+                 board_model: Optional[str] = None,
+                 board_id: Optional[str] = None):
         """
-        :param ser_port: a ``serial.Serial`` instance (or other object with a
-            compatible interface) that will be used to communicate with the
-            hardware
+        :param ser_port: a ``serial.Serial`` instance that will be used to
+            communicate with the hardware
+        :param board_model: If not ``None``, this will be checked against the
+            board model string reported by the hardware and :exc:`IdMismatch`
+            will be raised in case of a mismatch
+        :param board_id: Same as ``board_model`` but for the board ID string
         """
-        # TODO add option to verify matching board model and/or ID
         if hasattr(ser_port, 'timeout'):
             ser_port.timeout = self.SERIAL_TIMEOUT_S
         self._ser_port = ser_port
+        portname = self._ser_port.port
         self._board_model, self._board_id = self._ask("IDN").split(",")
+        for (desc, expected, actual) in [
+                ("board model", board_model, self.board_model),
+                ("board ID", board_id, self.board_id),
+                ]:
+            if expected is None:
+                continue
+            if expected != actual:
+                raise self.IdMismatch(
+                    f"Wrong {desc} (expected {expected!r}, "
+                    f"board reported {actual!r}) for device on "
+                    f"port {portname!r}"
+                    )
         term_nos = self._get_term_nos()
         self._terminal_capabilities = {
             term_no: self._ask(f"TCP:{term_no}") for term_no in term_nos
             }
 
     @classmethod
-    def from_serial_portname(cls, portname: str):
+    def list_connected_devices(
+            cls, usb_vidpid: Optional[Tuple[int, int]] = None
+            ) -> List[Tuple[str, str, str]]:
         """
-        Open the specified serial port and initialize a new
-        :class:`UxibxxIoBoard`.
+        Get a list of all connected UXIBxx devices. Detection is based on the
+        USB vendor ID, product ID and serial number descriptors reported by the
+        OS. This method does not attempt to open the devices or verify that
+        they are actually accessible.
+
+        Only supported on Windows, macOS and Linux.
+
+        :returns: A list of tuples ``(portname, board_id)`` where ``portname``
+            is a string used by pySerial to identify the port and ``board_id``
+            is the board ID string reported by the hardware.
+        """
+        usb_vidpids = (
+            [tuple(usb_vidpid)] if usb_vidpid is not None
+            else cls.USB_HW_IDS
+            )
+        return [
+            (info.device, info.serial_number)
+            for info in serial.tools.list_ports.comports()
+            if (info.vid, info.pid) in usb_vidpids
+            ]
+
+    @classmethod
+    def _select_and_open(
+            cls,
+            usb_vidpid: Optional[Tuple[int, int]] = None,
+            board_model: Optional[str] = None,
+            board_id: Optional[str] = None):
+        for portname, board_id_ in cls.list_connected_devices(
+                usb_vidpid=usb_vidpid):
+            if board_id is not None and board_id != board_id_:
+                continue
+            return cls.from_serial_portname(
+                portname, board_model=board_model, board_id=board_id)
+        filter_desc = ", ".join(
+            f"{name}={value!r}"
+            for name, value in [
+                ('usb_vidpid', usb_vidpid),
+                ('board_id', board_id)
+                ]
+            if value is not None
+            )
+        raise cls.DeviceNotFound(
+            "No device(s) found"
+            + (f" matching {filter_desc}" if filter_desc else "")
+            )
+
+    @classmethod
+    def open_first_device(cls, *args, **kwargs) -> 'UxibxxIoBoard':
+        """
+        Opens the first UXIBxx device found. Intended for convenience in
+        situations where only one device is connected.
+
+        :param args: positional arguments to pass to :meth:`__init__`
+        :param kwargs: keyword arguments to pass to :meth:`__init__`
+        :raises DeviceNotFound: If no matching devices were found
+        :raises serial.SerialException: If something went wrong opening the
+            serial device
+        """
+        return cls._select_and_open(*args, **kwargs)
+
+    @classmethod
+    def from_board_id(cls, board_id: str, *args, **kwargs) -> 'UxibxxIoBoard':
+        """
+        Finds and opens the UXIBxx device matching the specified board ID,
+        if present.
+
+        :param board_id: board ID string of the hardware to connect to
+        :param args: positional arguments to pass to :meth:`__init__`
+        :param kwargs: keyword arguments to pass to :meth:`__init__`
+        :returns: New :class:`UxibxxIoBoard` instance
+        :raises DeviceNotFound: If no matching devices were found
+        :raises serial.SerialException: If something went wrong opening the
+            serial device
+        """
+        return cls._select_and_open(board_id=board_id, *args, **kwargs)
+
+    @classmethod
+    def from_serial_portname(cls, portname: str, *args, **kwargs):
+        """
+        Opens and configures the serial port identified by ``portname`` and
+        uses it to initialize a new :class:`UxibxxIoBoard` instance.
 
         :param portname: Port name or URL to pass to ``serial.Serial()``
+        :param args: positional arguments to pass to :meth:`__init__`
+        :param kwargs: keyword arguments to pass to :meth:`__init__`
         :returns: New :class:`UxibxxIoBoard` instance
         :raises serial.SerialException: If something went wrong opening the
             serial device
         """
         ser = serial.Serial(portname, timeout=cls.SERIAL_TIMEOUT_S)
-        return cls(ser)
+        return cls(ser, *args, **kwargs)
 
     def _get_term_nos(self):
         response = self._ask("TLS").split(",")
@@ -187,13 +293,15 @@ class UxibxxIoBoard:
 
     def set_direction(
             self, n: int,
-            direction: Union[str, IoDirection]  # type: ignore[valid-type]
+            direction: types._IoDirectionOrLiteral
             ):
         """
         Sets the I/O direction of the specified terminal.
+        See :class:`IoDirection` for further explanation.
 
         :param n: Terminal number
-        :param direction: I/O direction to set the terminal to
+        :param direction: I/O direction to set the terminal to, either a
+            :class:`IoDirection` member or the corresponding string literal.
         :raises InvalidTerminalNo: if the specified terminal number is invalid
         :raises Unsupported: if the specified terminal does not support the
             requested mode.
@@ -207,15 +315,15 @@ class UxibxxIoBoard:
     @property
     def board_model(self) -> str:
         """
-        The board model name reported by the hardware, e.g. "UXIB-DN12"
+        The board model name reported by the hardware, e.g. ``"UXIB-DN12"``
         """
         return self._board_model
 
     @property
     def board_id(self) -> str:
         """
-        The board ID string reported by the hardware, e.g. "4E0101". This is
-        the same as the text of the USB serial number descriptor.
+        The board ID string reported by the hardware, e.g. ``"4E0101"``. This
+        is the same as the text of the USB serial number descriptor.
         """
         return self._board_id
 
@@ -230,8 +338,8 @@ class UxibxxIoBoard:
     @property
     def input_nos(self) -> List[int]:
         """
-        A list of the terminal numbers for terminals that support being set to
-        input mode.
+        A list of the terminal numbers for terminals that are inputs or support
+        being set to input mode.
         """
         return [
             term_no for (term_no, caps) in self._terminal_capabilities.items()
@@ -241,8 +349,8 @@ class UxibxxIoBoard:
     @property
     def output_nos(self) -> List[int]:
         """
-        A list of the terminal numbers for terminals that support being set to
-        output mode.
+        A list of the terminal numbers for terminals that are outputs or
+        support being set to output mode.
         """
         return [
             term_no for (term_no, caps) in self._terminal_capabilities.items()

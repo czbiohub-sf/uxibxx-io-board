@@ -1,9 +1,25 @@
 from enum import Enum
+from typing import Literal, Union
 
 
 class UxibxxIoBoardError(Exception):
     """
-    Base class of all UxibxxIoBoard errors
+    Base class of all :class:`UxibxxIoBoard` errors
+    """
+    pass
+
+
+class DeviceNotFound(UxibxxIoBoardError):
+    """
+    The UXIBxx board reported an error in response to a command.
+    """
+    pass
+
+
+class IdMismatch(UxibxxIoBoardError):
+    """
+    The model or board ID reported by the hardware doesn't match the expected
+    or specified value
     """
     pass
 
@@ -60,8 +76,11 @@ class IoDirection(Enum):
     only support output mode.
     """
 
-    # Terminal acts as an input
+    #: Terminal acts as an input
     INPUT = "in"
 
-    # Terminal acts as an output
+    #: Terminal acts as an output
     OUTPUT = "out"
+
+
+_IoDirectionOrLiteral = Union[IoDirection, Literal["in", "out"]]
