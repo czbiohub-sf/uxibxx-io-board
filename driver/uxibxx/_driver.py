@@ -78,6 +78,9 @@ class UxibxxIoBoard:
 
         Only supported on Windows, macOS and Linux.
 
+        :param usb_vidpid: A tuple ``(vid, pid)`` specifying a particular
+            USB vendor and product ID to look for instead of using the default
+            list of IDs.
         :returns: A list of tuples ``(portname, board_id)`` where ``portname``
             is a string used by pySerial to identify the port and ``board_id``
             is the board ID string reported by the hardware.
