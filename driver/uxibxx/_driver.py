@@ -123,18 +123,23 @@ class UxibxxIoBoard:
             )
 
     @classmethod
-    def open_first_device(cls, *args, **kwargs) -> 'UxibxxIoBoard':
+    def open_first_device(
+            cls,
+            usb_vidpid: Optional[Tuple[int, int]] = None,
+            **kwargs) -> 'UxibxxIoBoard':
         """
         Opens the first UXIBxx device found. Intended for convenience in
         situations where only one device is connected.
 
-        :param args: positional arguments to pass to :meth:`__init__`
+        :param usb_vidpid: A tuple ``(vid, pid)`` specifying a particular
+            USB vendor and product ID to look for instead of using the default
+            list of IDs.
         :param kwargs: keyword arguments to pass to :meth:`__init__`
         :raises DeviceNotFound: If no matching devices were found
         :raises serial.SerialException: If something went wrong opening the
             serial device
         """
-        return cls._select_and_open(*args, **kwargs)
+        return cls._select_and_open(usb_vidpid=usb_vidpid, **kwargs)
 
     @classmethod
     def from_board_id(cls, board_id: str, *args, **kwargs) -> 'UxibxxIoBoard':
