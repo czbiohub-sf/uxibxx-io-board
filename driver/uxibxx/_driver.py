@@ -100,13 +100,15 @@ class UxibxxIoBoard:
             cls,
             usb_vidpid: Optional[Tuple[int, int]] = None,
             board_model: Optional[str] = None,
-            board_id: Optional[str] = None):
+            board_id: Optional[str] = None,
+            **kwargs
+            ):
         for portname, board_id_ in cls.list_connected_devices(
                 usb_vidpid=usb_vidpid):
             if board_id is not None and board_id != board_id_:
                 continue
             return cls.from_serial_portname(
-                portname, board_model=board_model, board_id=board_id)
+                portname, board_model=board_model, board_id=board_id, **kwargs)
         filter_desc = ", ".join(
             f"{name}={value!r}"
             for name, value in [
