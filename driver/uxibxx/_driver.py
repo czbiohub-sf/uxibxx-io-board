@@ -69,7 +69,7 @@ class UxibxxIoBoard:
     @classmethod
     def list_connected_devices(
             cls, usb_vidpid: Optional[Tuple[int, int]] = None
-            ) -> List[Tuple[str, str, str]]:
+            ) -> List[Tuple[str, str]]:
         """
         Get a list of all connected UXIBxx devices. Detection is based on the
         USB vendor ID, product ID and serial number descriptors reported by the
