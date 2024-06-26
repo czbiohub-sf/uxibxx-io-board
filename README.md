@@ -15,7 +15,7 @@ If starting with an already-made UXIB*xx* device, just install the included `uxi
 See the `README.md` in each subdirectory for further information.
 
 ## Licenses
-Software source code is licensed under the BSD 3-Clause License. Hardware design files are licensed under .
+Software source code is licensed under the BSD 3-Clause License. Hardware design files are licensed under CERN-OHL-W.
 See the `LICENSE` file in each subdirectory for a copy of the applicable license terms.
 
 ## Support
