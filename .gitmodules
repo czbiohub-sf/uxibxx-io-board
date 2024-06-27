@@ -1,0 +1,4 @@
+[submodule "LUFA-210130"]
+	path = firmware/LUFA-210130
+	url = git@github.com:abcminiuser/lufa.git
+	shallow = true
