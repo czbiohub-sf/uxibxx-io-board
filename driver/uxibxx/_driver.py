@@ -69,7 +69,7 @@ class UxibxxIoBoard:
     @classmethod
     def list_connected_devices(
             cls, usb_vidpid: Optional[Tuple[int, int]] = None
-            ) -> List[Tuple[str, str]]:
+            ) -> List[Tuple[str, Optional[str]]]:
         """
         Get a list of all connected UXIBxx devices. Detection is based on the
         USB vendor ID, product ID and serial number descriptors reported by the
@@ -87,7 +87,7 @@ class UxibxxIoBoard:
         """
         usb_vidpids = (
             [tuple(usb_vidpid)] if usb_vidpid is not None
-            else cls.USB_HW_IDS
+            else set(cls.USB_HW_IDS)
             )
         return [
             (info.device, info.serial_number)
@@ -142,20 +142,19 @@ class UxibxxIoBoard:
         return cls._select_and_open(usb_vidpid=usb_vidpid, **kwargs)
 
     @classmethod
-    def from_board_id(cls, board_id: str, *args, **kwargs) -> 'UxibxxIoBoard':
+    def from_board_id(cls, board_id: str, **kwargs) -> 'UxibxxIoBoard':
         """
         Finds and opens the UXIBxx device matching the specified board ID,
         if present.
 
         :param board_id: board ID string of the hardware to connect to
-        :param args: positional arguments to pass to :meth:`__init__`
         :param kwargs: keyword arguments to pass to :meth:`__init__`
         :returns: New :class:`UxibxxIoBoard` instance
         :raises DeviceNotFound: If no matching devices were found
         :raises serial.SerialException: If something went wrong opening the
             serial device
         """
-        return cls._select_and_open(board_id=board_id, *args, **kwargs)
+        return cls._select_and_open(board_id=board_id, **kwargs)
 
     @classmethod
     def from_serial_portname(cls, portname: str, *args, **kwargs):
@@ -164,7 +163,6 @@ class UxibxxIoBoard:
         uses it to initialize a new :class:`UxibxxIoBoard` instance.
 
         :param portname: Port name or URL to pass to ``serial.Serial()``
-        :param args: positional arguments to pass to :meth:`__init__`
         :param kwargs: keyword arguments to pass to :meth:`__init__`
         :returns: New :class:`UxibxxIoBoard` instance
         :raises serial.SerialException: If something went wrong opening the
@@ -283,7 +281,7 @@ class UxibxxIoBoard:
         self._check_output_ok(n)
         self._tell(f"OUT:{n}={int(bool(on))}")
 
-    def get_direction(self, n: int) -> 'UxibxxIoBoard.IoDirection':
+    def get_direction(self, n: int) -> 'types.IoDirection':
         """
         Reads out the current I/O direction of the specified terminal
 
