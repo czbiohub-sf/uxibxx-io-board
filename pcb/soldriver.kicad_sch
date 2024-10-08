@@ -8634,7 +8634,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "PTC self-resetting fuse, 200mA 30V"
+		(property "Description" "1206 PTC self-resetting fuse, 200mA 30V"
 			(at 158.75 128.27 0)
 			(effects
 				(font
@@ -9325,7 +9325,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "PTC self-resetting fuse, 200mA 30V"
+		(property "Description" "1206 PTC self-resetting fuse, 200mA 30V"
 			(at 158.75 140.97 0)
 			(effects
 				(font
@@ -9558,7 +9558,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Ceramic cap 0.1uF 50V"
+		(property "Description" "0805 ceramic cap 0.1uF 50V"
 			(at 78.74 113.03 0)
 			(effects
 				(font
@@ -9672,7 +9672,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "PTC self-resetting fuse, 200mA 30V"
+		(property "Description" "1206 PTC self-resetting fuse, 200mA 30V"
 			(at 158.75 153.67 0)
 			(effects
 				(font
@@ -10205,7 +10205,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "SMD fuse 2A 30V"
+		(property "Description" "1206 SMD fuse fast acting 2A 63VDC"
 			(at 220.98 34.29 0)
 			(effects
 				(font
@@ -11767,7 +11767,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "PTC self-resetting fuse, 200mA 30V"
+		(property "Description" "1206 PTC self-resetting fuse, 200mA 30V"
 			(at 115.57 102.87 0)
 			(effects
 				(font
@@ -12370,7 +12370,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Ceramic cap 0.1uF 50V"
+		(property "Description" "0805 ceramic cap 0.1uF 50V"
 			(at 78.74 158.75 0)
 			(effects
 				(font
@@ -12599,7 +12599,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "PTC self-resetting fuse, 200mA 30V"
+		(property "Description" "1206 PTC self-resetting fuse, 200mA 30V"
 			(at 115.57 140.97 0)
 			(effects
 				(font
@@ -12713,7 +12713,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "PTC self-resetting fuse, 200mA 30V"
+		(property "Description" "1206 PTC self-resetting fuse, 200mA 30V"
 			(at 158.75 90.17 0)
 			(effects
 				(font
@@ -13120,7 +13120,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "PTC self-resetting fuse, 200mA 30V"
+		(property "Description" "1206 PTC self-resetting fuse, 200mA 30V"
 			(at 115.57 153.67 0)
 			(effects
 				(font
@@ -13530,7 +13530,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "PTC self-resetting fuse, 200mA 30V"
+		(property "Description" "1206 PTC self-resetting fuse, 200mA 30V"
 			(at 158.75 102.87 0)
 			(effects
 				(font
@@ -13618,7 +13618,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10u"
+		(property "Value" "2.2u"
 			(at 198.12 42.2909 0)
 			(effects
 				(font
@@ -13645,7 +13645,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Ceramic cap 10uF 50V"
+		(property "Description" "1206 tantalum cap 35V 2.2uF"
 			(at 201.93 41.91 0)
 			(effects
 				(font
@@ -13654,7 +13654,7 @@
 				(hide yes)
 			)
 		)
-		(property "DIGIKEY_SKU" "1276-CL31Y106KBKVPJECT-ND"
+		(property "DIGIKEY_SKU" ""
 			(at 201.93 41.91 0)
 			(effects
 				(font
@@ -13663,7 +13663,7 @@
 				(hide yes)
 			)
 		)
-		(property "MFR" "Samsung Electro-Mechanics"
+		(property "MFR" "KEMET"
 			(at 201.93 41.91 0)
 			(effects
 				(font
@@ -13672,7 +13672,7 @@
 				(hide yes)
 			)
 		)
-		(property "MOUSER_SKU" ""
+		(property "MOUSER_SKU" "80-T491A225K35ATAUTO"
 			(at 201.93 41.91 0)
 			(effects
 				(font
@@ -13681,7 +13681,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "CL31Y106KBKVPJE"
+		(property "MPN" "T491A225K035ATAUTO"
 			(at 201.93 41.91 0)
 			(effects
 				(font
@@ -14202,7 +14202,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "PTC self-resetting fuse, 200mA 30V"
+		(property "Description" "1206 PTC self-resetting fuse, 200mA 30V"
 			(at 115.57 90.17 0)
 			(effects
 				(font
@@ -15067,7 +15067,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "PTC self-resetting fuse, 200mA 30V"
+		(property "Description" "1206 PTC self-resetting fuse, 200mA 30V"
 			(at 158.75 115.57 0)
 			(effects
 				(font
@@ -15733,7 +15733,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "PTC self-resetting fuse, 200mA 30V"
+		(property "Description" "1206 PTC self-resetting fuse, 200mA 30V"
 			(at 115.57 115.57 0)
 			(effects
 				(font
@@ -15847,7 +15847,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "PTC self-resetting fuse, 200mA 30V"
+		(property "Description" "1206 PTC self-resetting fuse, 200mA 30V"
 			(at 115.57 128.27 0)
 			(effects
 				(font
