@@ -56,7 +56,8 @@ int parseArgVal(
 		case ARGTYPE_UINT16:
 			scanfResult = sscanf((char *)buf, "%u", &uintVal);
 			if(scanfResult != 1)
-				return -1; // TODO maybe have distinct error values for different problems	
+				return -1;
+				// TODO maybe have distinct error values for different problems	
 			break;
 		case ARGTYPE_STRING:
 			strncpy(dest->stringVal, buf, CMDPROC_ARG_MAX_LEN);
@@ -98,7 +99,8 @@ int getCommandSpec(
 	return -1;
 	}
 
-cmdproc_error_t parseArgs(char *str, cmdproc_argval_t *destArgs, const cmdproc_argtype_t *argTypes, int nArgs) {
+cmdproc_error_t parseArgs(char *str, cmdproc_argval_t *destArgs,
+	                      const cmdproc_argtype_t *argTypes, int nArgs) {
 	char argBuf[CMDPROC_ARG_MAX_LEN + 1] = {[CMDPROC_ARG_MAX_LEN] = 0};
 	int argIdx = 0;
 	char *argStart = str;
@@ -117,7 +119,8 @@ cmdproc_error_t parseArgs(char *str, cmdproc_argval_t *destArgs, const cmdproc_a
 		if(strlen(argStart) > CMDPROC_ARG_MAX_LEN)
 			return ERROR_ARG_FMT;
 		strncpy(argBuf, argStart, CMDPROC_ARG_MAX_LEN);
-		// TODO we don't actually need to do that copy, could enforce length in parseArgVal()
+		// TODO we don't actually need to do that copy,
+		// could enforce length in parseArgVal()
 		if(parseArgVal(&destArgs[argIdx], argBuf, argTypes[argIdx]))
 			return ERROR_ARG_FMT;
 		argIdx++;

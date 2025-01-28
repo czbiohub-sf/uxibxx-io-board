@@ -24,6 +24,8 @@ static uint16_t blJumpTrigger __attribute__((section (".noinit")));
 static nvparams_t nvParams;
 
 
+// Misc subroutines
+
 void maybeJumpToBootloader(void) {
 	if((MCUSR & _BV(WDRF)) && (blJumpTrigger == BOOTLOADER_TRIGGER_KEY)) {
 		asm volatile("jmp 0x7000"::);
@@ -34,6 +36,7 @@ void maybeJumpToBootloader(void) {
 void triggerWatchdogReset(void) {
 	wdt_enable(WDTO_2S);
 	_delay_ms(1000);
+	// ^ courtesy delay for host application to cleanly close file handle
 	cli();
 	usbcdc__detach();
 	statusleds__setHbtLed(1);
@@ -231,6 +234,11 @@ void mstick__tick(volatile uint16_t *tickCounter) {
 	statusleds__onMsTick(tickCounter);
 	}
 
+	}
+
+
+// Main routine (unnecessary section title)
+	
 int main(void) {
 	hwInit();
 	statusleds__init();
