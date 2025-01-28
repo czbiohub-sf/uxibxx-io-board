@@ -4,7 +4,7 @@
 #include "mstick.h"
 
 
-volatile uint16_t tickCounter;
+static volatile uint16_t tickCounter;
 
 
 void mstick__init(void) {
@@ -17,5 +17,5 @@ void mstick__init(void) {
 
 ISR(TIMER0_COMPA_vect) {
 	++tickCounter;
-	mstick__tick(&tickCounter);
+	mstick__tickEvent(&tickCounter);
 	}
