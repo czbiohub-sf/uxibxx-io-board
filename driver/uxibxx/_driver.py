@@ -320,6 +320,15 @@ class UxibxxIoBoard:
         dir_code = dict((y, x) for (x, y) in self._direction_codes)[direction]
         self._tell(f"DIR:{n}={dir_code}")
 
+    def close(self):
+        """
+        Immediately releases the serial port handle. Calling multiple times is
+        harmless.
+        """
+        if self._ser_port is not None:
+            self._ser_port.close()
+            self._ser_port = None
+
     @property
     def board_model(self) -> str:
         """
