@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <avr/io.h>
+#include <util/atomic.h>
 
 #include "gpio.h"
 
@@ -43,37 +44,45 @@ const gpio_terminal_def_t *getTerminal(int terminalNo) {
 	return NULL;
 	}
 
-inline void setIoRegBit(volatile uint8_t *reg, int bitNo, int on) {
-	if(on) {
-		*reg |= _BV(bitNo);
+inline int readIoRegBitIndirect(const volatile uint8_t *reg, int bitNo) {
+	return !!(*reg & _BV(bitNo));
+	}
+
+inline void setIoRegBitIndirect(volatile uint8_t *reg, int bitNo, int on) {
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		// SBI instruction operands must be immediate so this is always going
+		// to be a multi-instruction operation unless we get really silly
+		if(on) {
+			*reg |= _BV(bitNo);
+			}
+		else {
+			*reg &= ~_BV(bitNo);
+			}
 		}
-	else {
-		*reg &= ~_BV(bitNo);
-		}
+	}
+
+inline enum gpio_terminal_dir getDirection(
+		const gpio_terminal_def_t *terminal) {
+	return readIoRegBitIndirect(terminal->dirReg, terminal->ioBit);
+	}
+
+inline int getOutput(const gpio_terminal_def_t *terminal) {
+	return readIoRegBitIndirect(terminal->outputReg, terminal->ioBit);
+	}
+
+inline int getInput(const gpio_terminal_def_t *terminal) {
+	return readIoRegBitIndirect(terminal->inputReg, terminal->ioBit);
 	}
 
 void gpio__init(void) {
 	for(int i = 0; i < gpio__nTerminals; ++i) {
 		const gpio_terminal_def_t *term = &gpioTerminalDefs[i];
 		if(term->dirReg)
-			setIoRegBit(
+			setIoRegBitIndirect(
 				term->dirReg, term->ioBit, term->initialDir == DIR_OUT);
 		if(term->outputReg)
-			setIoRegBit(term->outputReg, term->ioBit, term->initialOutput);
+			setIoRegBitIndirect(term->outputReg, term->ioBit, term->initialOutput);
 		}
-	}
-
-inline enum gpio_terminal_dir getDirection(
-		const gpio_terminal_def_t *terminal) {
-	return !!(*terminal->dirReg & _BV(terminal->ioBit));
-	}
-
-inline int getOutput(const gpio_terminal_def_t *terminal) {
-	return !!(*terminal->outputReg & _BV(terminal->ioBit));
-	}
-
-inline int getInput(const gpio_terminal_def_t *terminal) {
-	return !!(*terminal->inputReg & _BV(terminal->ioBit));
 	}
 
 int gpio__getInput(int terminalNo) {
@@ -121,8 +130,15 @@ int gpio__setOutput(int terminalNo, int on) {
 		return -1;
 	if(!terminal->outputReg)
 		return -1;
-	setIoRegBit(terminal->outputReg, terminal->ioBit, on);
+	setIoRegBitIndirect(terminal->outputReg, terminal->ioBit, on);
 	return 0;
+	}
+
+int gpio__toggleOutput(int terminalNo) {
+	int prev = gpio__getOutput(terminalNo);
+	if(prev < 0)
+		return prev;
+	return gpio__setOutput(terminalNo, !prev);
 	}
 
 int gpio__setDirection(int terminalNo, enum gpio_terminal_dir dir) {
@@ -135,7 +151,7 @@ int gpio__setDirection(int terminalNo, enum gpio_terminal_dir dir) {
 		return -1;
 	if((dir == DIR_IN) && !terminal->inputReg)
 		return -1;
-	setIoRegBit(terminal->dirReg, terminal->ioBit, dir);
+	setIoRegBitIndirect(terminal->dirReg, terminal->ioBit, dir);
 	return 0;
 	}
 
