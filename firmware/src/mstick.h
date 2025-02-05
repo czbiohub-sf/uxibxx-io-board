@@ -1,4 +1,7 @@
-void mstick__init(uint16_t timeoutMs);
+#pragma once
+
+
+void mstick__init(void);
 
 void mstick__tickEvent(volatile uint16_t *tickCounter);
 // Application defines this

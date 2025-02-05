@@ -1,3 +1,6 @@
+#pragma once
+
+
 enum gpio_terminal_dir {
 	DIR_IN = 0,
 	DIR_OUT = 1,

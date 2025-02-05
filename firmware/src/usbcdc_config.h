@@ -1,3 +1,6 @@
+#pragma once
+
+
 #define MFR_STRING L"CZBSF BioE"
 #define PROD_STRING L"UXIB-DN12 12-channel solenoid controller"
 #define VENDOR_ID 0x4743

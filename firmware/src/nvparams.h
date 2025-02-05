@@ -1,3 +1,6 @@
+#pragma once
+
+
 #define BOARDID_LEN_MAX 16
 
 
