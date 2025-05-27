@@ -5,9 +5,9 @@
 	(uuid "d7bbb5e0-7f63-402b-a053-06ae92db22c0")
 	(paper "A4")
 	(title_block
-		(title "CBEIO1 12-channel USB solenoid/relay driver")
-		(date "2024-04-18")
-		(rev "4")
+		(title "UXIB-DN12 12-channel USB solenoid/relay driver")
+		(date "2024-10-08")
+		(rev "5")
 		(company "Bioengineering Platform, Chan Zuckerberg Biohub San Francisco")
 		(comment 1 "Greg Courville <greg.courville@czbiohub.org>")
 	)
